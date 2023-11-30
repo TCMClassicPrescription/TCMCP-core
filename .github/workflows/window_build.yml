@@ -25,9 +25,6 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg install
 
-      - name: Install GTest with vcpkg
-        run: .\vcpkg\vcpkg install gtest:x64-windows
-
       - name: Set reusable strings
         id: strings
         shell: bash
@@ -40,13 +37,12 @@ jobs:
           -G "MinGW Makefiles" `
           -DCMAKE_BUILD_TYPE=Release `
           -S ${{ github.workspace }} `
-          -DGTest_DIR="${{ github.workspace }}/vcpkg/installed/x64-windows/share/gtest" `
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/vcpkg/installed/x64-windows/share"
       - name: Build with MinGW
         run: |
           cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
 
-      - name: upload libtcmcp_core.dll
+      - name: Upload libtcmcp_core.dll
         uses: actions/upload-artifact@v2
         with:
           name: libtcmcp_core.dll
