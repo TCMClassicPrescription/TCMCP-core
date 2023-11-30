@@ -51,8 +51,7 @@ jobs:
           cmake -B ${{ github.workspace }}/build `
           -G "MinGW Makefiles" `
           -DCMAKE_BUILD_TYPE=Release `
-          -S ${{ github.workspace }}
-#          -DGTest_DIR="${{ github.workspace }}/vcpkg/installed/x64-windows/share"
+          -S ${{ github.workspace }} `
           -DGTest_DIR="${{ github.workspace }}/vcpkg/installed/x64-windows/share" `
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/vcpkg/installed/x64-windows/share"
       - name: Build with MinGW
