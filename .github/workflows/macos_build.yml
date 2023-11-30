@@ -1,0 +1,85 @@
+name: Macos Build
+
+on:
+  push:
+    branches: [ "" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ macos-latest ]
+        build_type: [ Release ]
+        c_compiler: [ gcc, clang, cl ]
+        include:
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: macos-latest
+            c_compiler: cl
+          - os: macos-latest
+            c_compiler: gcc
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set reusable strings
+        # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Configure mac CMake
+        run: |
+          cmake -B build -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Release -S .
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Upload Library
+        uses: actions/upload-artifact@v2
+        with:
+          name: libtcmcp_core.dylib
+          path: ${{github.workspace}}/build/libtcmcp_core.dylib
+#  release:
+#    needs: build
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: false
+#      - name: Upload QtReadELF with QT env
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: ${{github.workspace}}/build/QtReadELF.dmg
+#          asset_name: QtReadELF.dmg
+#          asset_content_type: application/x-diskcopy
+#      - name: Upload QtReadELF without QT env
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: ${{github.workspace}}/build/QtReadELF.app/Contents/MacOS/QtReadELF
+#          asset_name: QtReadELF
+#          asset_content_type: application/x-diskcopy

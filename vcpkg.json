@@ -1,0 +1,15 @@
+{
+  "name" : "tcmcp-core",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "bb588985e37484d543fc849d0d79434e0d45bb3c",
+  "dependencies" : [ {
+    "name" : "spdlog",
+    "version>=" : "1.11.0"
+  }, {
+    "name" : "gtest",
+    "version>=" : "1.13.0"
+  }, {
+    "name" : "sqlitecpp",
+    "version>=" : "3.2.0#1"
+  } ]
+}

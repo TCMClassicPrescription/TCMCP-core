@@ -1,0 +1,66 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [  windows-latest]
+        build_type: [ Release ]
+        c_compiler: [ clang ]
+        include:
+          - os: windows-latest
+            c_compiler: clang
+            cpp_compiler: clang
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # 检出 vcpkg 子模块（如果您的项目中使用了 vcpkg 作为子模块）
+      - name: Checkout vcpkg
+        run: |
+          git submodule update --init --recursive
+
+      # 安装 vcpkg 并使用项目的 vcpkg.json 安装依赖
+      - name: Install dependencies with vcpkg
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg install
+
+#      - name: Install GTest with vcpkg
+#        run: .\vcpkg\vcpkg install gtest:x64-windows
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake with MinGW
+        run: |
+          cmake -B ${{ github.workspace }}/build `
+          -G "MinGW Makefiles" `
+          -DCMAKE_BUILD_TYPE=Release `
+          -S ${{ github.workspace }}
+#          -DGTest_DIR="${{ github.workspace }}/vcpkg/installed/x64-windows/share"
+
+      - name: Build with MinGW
+        run: |
+          cmake clean
+          cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+      - name: upload libtcmcp_core.dll
+        uses: actions/upload-artifact@v2
+        with:
+          name: libtcmcp_core.dll
+          path: ${{github.workspace}}/build/libtcmcp_core.dll
