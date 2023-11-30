@@ -8,19 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-
-      matrix:
-        os: [  windows-latest]
-        build_type: [ Release ]
-        c_compiler: [ clang ]
-        include:
-          - os: windows-latest
-            c_compiler: clang
-            cpp_compiler: clang
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -37,8 +25,8 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg install
 
-#      - name: Install GTest with vcpkg
-#        run: .\vcpkg\vcpkg install gtest:x64-windows
+      - name: Install GTest with vcpkg
+        run: .\vcpkg\vcpkg install gtest:x64-windows
 
       - name: Set reusable strings
         id: strings
@@ -52,15 +40,14 @@ jobs:
           -G "MinGW Makefiles" `
           -DCMAKE_BUILD_TYPE=Release `
           -S ${{ github.workspace }} `
-          -DGTest_DIR="${{ github.workspace }}/vcpkg/installed/x64-windows/share" `
+          -DGTest_DIR="${{ github.workspace }}/vcpkg/installed/x64-windows/share/gtest" `
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/vcpkg/installed/x64-windows/share"
       - name: Build with MinGW
         run: |
-          cmake clean
-          cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+          cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
 
       - name: upload libtcmcp_core.dll
         uses: actions/upload-artifact@v2
         with:
           name: libtcmcp_core.dll
-          path: ${{github.workspace}}/build/libtcmcp_core.dll
+          path: ${{ github.workspace }}/build/libtcmcp_core.dll
